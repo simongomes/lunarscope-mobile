@@ -1,29 +1,41 @@
+import { useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+
+import { TabBar, type TabKey } from "./src/components/TabBar";
+import { HomeScreen } from "./src/screens/HomeScreen";
+import { PlaceholderScreen } from "./src/screens/PlaceholderScreen";
+import { colors } from "./src/theme";
+
+const placeholderTitles: Record<Exclude<TabKey, "home">, string> = {
+  explore: "Explore",
+  calendar: "Calendar",
+  skymap: "Sky Map",
+  profile: "Profile",
+};
 
 export default function App() {
+  const [tab, setTab] = useState<TabKey>("home");
+
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.container}>
-          <Text style={{ fontSize: 34, fontWeight: "bold" }}>Lunar Scope</Text>
-          <Text style={{ fontSize: 20, color: "gray" }}>
-            Lunar Scope is a app that shows the lunar phase of the moon.
-          </Text>
-          <StatusBar style="auto" />
-        </View>
-      </SafeAreaView>
+      <StatusBar style="light" />
+      <View style={styles.root}>
+        {tab === "home" ? (
+          <HomeScreen />
+        ) : (
+          <PlaceholderScreen title={placeholderTitles[tab]} />
+        )}
+        <TabBar active={tab} onChange={setTab} />
+      </View>
     </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 10,
+    backgroundColor: colors.background,
   },
 });
