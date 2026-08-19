@@ -28,10 +28,12 @@ export default {
 
         const astronomyApiKey =
           Deno.env.get("IPGEOLOCATION_API_KEY");
+        const astronomyApiUrl =
+          Deno.env.get("IPGEOLOCATION_API_URL");
 
-        if (!astronomyApiKey) {
+        if (!astronomyApiKey || !astronomyApiUrl) {
           console.error(
-            "IPGEOLOCATION_API_KEY is not configured",
+            "IPGEOLOCATION_API_KEY or IPGEOLOCATION_API_URL is not configured",
           );
 
           return Response.json(
@@ -55,7 +57,7 @@ export default {
         }
 
         const astronomyResponse = await fetch(
-          `https://api.ipgeolocation.io/v3/astronomy?${query}`,
+          `${astronomyApiUrl}?${query}`,
         );
 
         if (!astronomyResponse.ok) {
