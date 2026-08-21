@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { colors } from "../theme";
+import { colors, fonts } from "../theme";
 
 type PlaceholderScreenProps = {
   title: string;
@@ -31,11 +31,12 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.text,
+    fontFamily: fonts.primary.bold,
     fontSize: 24,
-    fontWeight: "700",
   },
   subtitle: {
     color: colors.textMuted,
+    fontFamily: fonts.secondary.regular,
     fontSize: 15,
     marginTop: 8,
   },

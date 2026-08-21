@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 
 import {
   ArrowDownRightIcon,
@@ -25,7 +26,7 @@ import {
 } from "../components/Icons";
 import { MoonPhaseIcon } from "../components/MoonPhaseIcon";
 import { homeData } from "../data/home";
-import { colors, radius, spacing } from "../theme";
+import { colors, fonts, radius, spacing } from "../theme";
 
 const moonImage = require("../../assets/images/moon-waxing-gibbous.png");
 
@@ -60,11 +61,13 @@ export function HomeScreen() {
           <View style={styles.moonCardTop}>
             <View style={styles.moonMeta}>
               <Text style={styles.kicker}>ILLUMINATION</Text>
-              <Text style={styles.illumination}>{homeData.moon.illumination}%</Text>
+              <Text style={styles.illumination}>
+                {homeData.moon.illumination}%
+              </Text>
               <Text style={styles.phaseName}>{homeData.moon.phase}</Text>
             </View>
             <View style={styles.moonVisual}>
-              <View style={styles.moonGlow} />
+              <MoonHalo />
               <Image source={moonImage} style={styles.moonImage} />
             </View>
           </View>
@@ -73,14 +76,18 @@ export function HomeScreen() {
               <ArrowUpRightIcon />
               <View>
                 <Text style={styles.moonTimeLabel}>Moonrise</Text>
-                <Text style={styles.moonTimeValue}>{homeData.moon.moonrise}</Text>
+                <Text style={styles.moonTimeValue}>
+                  {homeData.moon.moonrise}
+                </Text>
               </View>
             </View>
             <View style={styles.moonTimeCol}>
               <ArrowDownRightIcon />
               <View>
                 <Text style={styles.moonTimeLabel}>Moonset</Text>
-                <Text style={styles.moonTimeValue}>{homeData.moon.moonset}</Text>
+                <Text style={styles.moonTimeValue}>
+                  {homeData.moon.moonset}
+                </Text>
               </View>
             </View>
           </View>
@@ -114,7 +121,10 @@ export function HomeScreen() {
               <Pressable
                 key={day.day}
                 onPress={() => setSelectedDay(index)}
-                style={[styles.forecastCard, selected && styles.forecastCardSelected]}
+                style={[
+                  styles.forecastCard,
+                  selected && styles.forecastCardSelected,
+                ]}
               >
                 <Text style={styles.forecastDay}>{day.day}</Text>
                 <MoonPhaseIcon
@@ -154,10 +164,13 @@ export function HomeScreen() {
               </View>
               <Text style={styles.skyLine}>
                 Visibility:{" "}
-                <Text style={styles.skyExcellent}>{homeData.sky.visibility}</Text>
+                <Text style={styles.skyExcellent}>
+                  {homeData.sky.visibility}
+                </Text>
               </Text>
               <Text style={styles.skyLine}>
-                Planets: <Text style={styles.skyStrong}>{homeData.sky.planets}</Text>
+                Planets:{" "}
+                <Text style={styles.skyStrong}>{homeData.sky.planets}</Text>
               </Text>
             </View>
             <View>
@@ -186,14 +199,18 @@ export function HomeScreen() {
                 </View>
                 <View>
                   <Text style={styles.kicker}>YOUR ASTROLOGY</Text>
-                  <Text style={styles.astrologySign}>{homeData.astrology.sign}</Text>
+                  <Text style={styles.astrologySign}>
+                    {homeData.astrology.sign}
+                  </Text>
                 </View>
               </View>
               <View style={styles.scorpioBadge}>
                 <ScorpioGlyph />
               </View>
             </View>
-            <Text style={styles.astrologyBlurb}>{homeData.astrology.blurb}</Text>
+            <Text style={styles.astrologyBlurb}>
+              {homeData.astrology.blurb}
+            </Text>
             <Pressable style={styles.horoscopeLink} accessibilityRole="link">
               <Text style={styles.horoscopeText}>Read Daily Horoscope</Text>
               <ChevronRightIcon />
@@ -202,6 +219,31 @@ export function HomeScreen() {
         </LinearGradient>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function MoonHalo() {
+  const size = 260;
+  const cx = size / 2;
+
+  return (
+    <Svg
+      width={size}
+      height={size}
+      style={styles.moonGlow}
+      pointerEvents="none"
+    >
+      <Defs>
+        <RadialGradient id="moonHalo" cx="50%" cy="50%" r="50%">
+          <Stop offset="0.28" stopColor="#FFF3C4" stopOpacity="0.55" />
+          <Stop offset="0.42" stopColor="#F0D070" stopOpacity="0.32" />
+          <Stop offset="0.58" stopColor="#D4B15A" stopOpacity="0.14" />
+          <Stop offset="0.78" stopColor="#C4A050" stopOpacity="0.05" />
+          <Stop offset="1" stopColor="#C4A050" stopOpacity="0" />
+        </RadialGradient>
+      </Defs>
+      <Circle cx={cx} cy={cx} r={cx} fill="url(#moonHalo)" />
+    </Svg>
   );
 }
 
@@ -259,8 +301,8 @@ const styles = StyleSheet.create({
   },
   greeting: {
     color: colors.text,
+    fontFamily: fonts.primary.bold,
     fontSize: 28,
-    fontWeight: "700",
     letterSpacing: -0.4,
   },
   locationRow: {
@@ -271,6 +313,7 @@ const styles = StyleSheet.create({
   },
   location: {
     color: colors.goldMuted,
+    fontFamily: fonts.secondary.regular,
     fontSize: 14,
   },
   bellButton: {
@@ -289,7 +332,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.cardBorder,
     padding: 18,
-    overflow: "hidden",
+    overflow: "visible",
   },
   moonCardTop: {
     flexDirection: "row",
@@ -302,21 +345,21 @@ const styles = StyleSheet.create({
   },
   kicker: {
     color: colors.textMuted,
+    fontFamily: fonts.secondary.semibold,
     fontSize: 11,
-    fontWeight: "600",
     letterSpacing: 1.4,
   },
   illumination: {
     color: colors.goldText,
+    fontFamily: fonts.primary.bold,
     fontSize: 52,
-    fontWeight: "700",
     letterSpacing: -1.2,
     marginTop: 2,
   },
   phaseName: {
     color: colors.text,
+    fontFamily: fonts.primary.semibold,
     fontSize: 20,
-    fontWeight: "600",
     marginTop: 2,
   },
   moonVisual: {
@@ -326,18 +369,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: -10,
     marginTop: -6,
+    overflow: "visible",
   },
   moonGlow: {
     position: "absolute",
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: "rgba(212, 177, 90, 0.22)",
   },
   moonImage: {
-    width: 138,
-    height: 138,
-    borderRadius: 69,
+    width: 128,
+    height: 128,
+    borderRadius: 64,
   },
   moonTimes: {
     flexDirection: "row",
@@ -353,12 +393,13 @@ const styles = StyleSheet.create({
   },
   moonTimeLabel: {
     color: colors.textMuted,
+    fontFamily: fonts.secondary.regular,
     fontSize: 13,
   },
   moonTimeValue: {
     color: colors.text,
+    fontFamily: fonts.primary.semibold,
     fontSize: 16,
-    fontWeight: "600",
     marginTop: 1,
   },
   sunCard: {
@@ -390,14 +431,14 @@ const styles = StyleSheet.create({
   },
   sunValue: {
     color: colors.text,
+    fontFamily: fonts.primary.semibold,
     fontSize: 15,
-    fontWeight: "600",
     marginTop: 4,
   },
   sectionTitle: {
     color: colors.text,
+    fontFamily: fonts.primary.bold,
     fontSize: 18,
-    fontWeight: "700",
     marginTop: 22,
     marginBottom: 12,
   },
@@ -420,13 +461,13 @@ const styles = StyleSheet.create({
   },
   forecastDay: {
     color: colors.textSecondary,
+    fontFamily: fonts.secondary.semibold,
     fontSize: 13,
-    fontWeight: "600",
   },
   forecastPct: {
     color: colors.text,
+    fontFamily: fonts.primary.semibold,
     fontSize: 13,
-    fontWeight: "600",
   },
   stars: {
     flexDirection: "row",
@@ -455,53 +496,55 @@ const styles = StyleSheet.create({
   },
   infoHeaderGold: {
     color: colors.gold,
+    fontFamily: fonts.secondary.semibold,
     fontSize: 13,
-    fontWeight: "600",
   },
   infoHeaderWhite: {
     color: colors.text,
+    fontFamily: fonts.secondary.semibold,
     fontSize: 13,
-    fontWeight: "600",
   },
   eclipseType: {
     color: colors.goldText,
+    fontFamily: fonts.primary.bold,
     fontSize: 17,
-    fontWeight: "700",
   },
   eclipseDate: {
     color: colors.textMuted,
+    fontFamily: fonts.secondary.regular,
     fontSize: 13,
     marginTop: 2,
   },
   countdown: {
     color: colors.text,
+    fontFamily: fonts.primary.bold,
     fontSize: 16,
-    fontWeight: "700",
     paddingTop: 12,
   },
   skyLine: {
     color: colors.textMuted,
+    fontFamily: fonts.secondary.regular,
     fontSize: 13,
     marginBottom: 4,
   },
   skyExcellent: {
     color: colors.green,
-    fontWeight: "700",
+    fontFamily: fonts.primary.bold,
   },
   skyStrong: {
     color: colors.text,
-    fontWeight: "600",
+    fontFamily: fonts.primary.semibold,
   },
   bestWindowLabel: {
     color: colors.textDim,
+    fontFamily: fonts.secondary.bold,
     fontSize: 10,
-    fontWeight: "700",
     letterSpacing: 1.1,
   },
   bestWindow: {
     color: colors.goldText,
+    fontFamily: fonts.primary.bold,
     fontSize: 15,
-    fontWeight: "700",
     marginTop: 2,
   },
   astrologyBorder: {
@@ -539,8 +582,8 @@ const styles = StyleSheet.create({
   },
   astrologySign: {
     color: colors.text,
+    fontFamily: fonts.primary.bold,
     fontSize: 20,
-    fontWeight: "700",
     marginTop: 2,
   },
   scorpioBadge: {
@@ -553,6 +596,7 @@ const styles = StyleSheet.create({
   },
   astrologyBlurb: {
     color: colors.textSecondary,
+    fontFamily: fonts.primary.regular,
     fontSize: 14,
     lineHeight: 21,
     marginTop: 12,
@@ -565,7 +609,7 @@ const styles = StyleSheet.create({
   },
   horoscopeText: {
     color: colors.purpleBright,
+    fontFamily: fonts.primary.semibold,
     fontSize: 14,
-    fontWeight: "600",
   },
 });

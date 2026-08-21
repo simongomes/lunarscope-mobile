@@ -1,10 +1,14 @@
 {
-  "name": "moon-phases",
+  "name": "lunar-scope",
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@expo-google-fonts/geist": "^0.4.2",
+    "@expo-google-fonts/outfit": "^0.4.3",
     "expo": "~57.0.12",
+    "expo-font": "~57.0.1",
     "expo-linear-gradient": "~57.0.1",
+    "expo-splash-screen": "~57.0.7",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-native": "0.86.2",

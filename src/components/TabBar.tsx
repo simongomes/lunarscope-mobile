@@ -8,7 +8,7 @@ import {
   HomeTabIcon,
   ProfileTabIcon,
 } from "./Icons";
-import { colors } from "../theme";
+import { colors, fonts } from "../theme";
 
 export type TabKey = "home" | "explore" | "calendar" | "skymap" | "profile";
 
@@ -71,8 +71,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   label: {
+    fontFamily: fonts.secondary.semibold,
     fontSize: 10,
-    fontWeight: "600",
     letterSpacing: 0.2,
   },
 });

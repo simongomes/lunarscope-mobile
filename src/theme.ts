@@ -38,3 +38,16 @@ export const radius = {
   xl: 28,
   pill: 999,
 } as const;
+
+export const fonts = {
+  primary: {
+    regular: "Outfit_400Regular",
+    semibold: "Outfit_600SemiBold",
+    bold: "Outfit_700Bold",
+  },
+  secondary: {
+    regular: "Geist_400Regular",
+    semibold: "Geist_600SemiBold",
+    bold: "Geist_700Bold",
+  },
+} as const;
