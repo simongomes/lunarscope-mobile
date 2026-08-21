@@ -1,5 +1,9 @@
 import "@supabase/functions-js/edge-runtime.d.ts";
 import { withSupabase } from "@supabase/server";
+import {
+  isLunarScopeAstronomy,
+  toLunarScopeAstronomy,
+} from "./toLunarScopeAstronomy.ts";
 
 type LocationBucket = {
   key: string;
@@ -116,8 +120,15 @@ export default {
 
         /*
          * 4. Cache HIT.
+         *
+         * Only return cached rows that already
+         * match the LunarScope contract.
+         * Raw provider rows are remapped below.
          */
-        if (cachedData) {
+        if (
+          cachedData &&
+          isLunarScopeAstronomy(cachedData.data)
+        ) {
           console.log(
             `Astronomy cache HIT: ${bucket.key} ${date}`,
           );
@@ -128,14 +139,77 @@ export default {
         }
 
         /*
-         * 5. Cache MISS.
+         * 5. Remap stale cache rows.
+         *
+         * Older rows stored the raw provider
+         * payload. Convert them in place so
+         * LunarScope never receives that shape.
+         */
+        if (cachedData) {
+          try {
+            const astronomy = toLunarScopeAstronomy(
+              cachedData.data,
+            );
+
+            const {
+              error: cacheRewriteError,
+            } =
+              await ctx.supabaseAdmin
+                .from("astronomy_cache")
+                .upsert(
+                  {
+                    location_bucket:
+                      bucket.key,
+
+                    latitude:
+                      bucket.latitude,
+
+                    longitude:
+                      bucket.longitude,
+
+                    astronomy_date:
+                      date,
+
+                    data:
+                      astronomy,
+                  },
+                  {
+                    onConflict:
+                      "location_bucket,astronomy_date",
+                  },
+                );
+
+            if (cacheRewriteError) {
+              console.error(
+                "Astronomy cache rewrite error:",
+                cacheRewriteError,
+              );
+            } else {
+              console.log(
+                `Astronomy cache remapped: ${bucket.key} ${date}`,
+              );
+            }
+
+            return Response.json({
+              astronomy,
+            });
+          } catch (error) {
+            console.error(
+              "Astronomy cache remap error:",
+              error,
+            );
+          }
+        }
+
+        /*
+         * 6. Cache MISS.
          */
         console.log(
           `Astronomy cache MISS: ${bucket.key} ${date}`,
         );
 
         /*
-         * 6. Get provider configuration.
+         * 7. Get provider configuration.
          */
         const astronomyApiKey =
           Deno.env.get(
@@ -167,7 +241,7 @@ export default {
         }
 
         /*
-         * 7. Call IPGeolocation.
+         * 8. Call IPGeolocation.
          *
          * IMPORTANT:
          * use the bucket coordinates,
@@ -213,13 +287,45 @@ export default {
         }
 
         /*
-         * 8. Read provider response.
+         * 9. Read provider response.
+         *
+         * Keep this payload private.
+         * Do not cache or return it.
          */
-        const astronomy =
+        const providerAstronomy =
           await astronomyResponse.json();
 
         /*
-         * 9. Save response in cache.
+         * 10. Map to the LunarScope contract.
+         *
+         * LunarScope never sees raw
+         * IPGeolocation fields or types.
+         */
+        let astronomy;
+
+        try {
+          astronomy = toLunarScopeAstronomy(
+            providerAstronomy,
+          );
+        } catch (error) {
+          console.error(
+            "Astronomy mapping error:",
+            error,
+          );
+
+          return Response.json(
+            {
+              error:
+                "Unable to retrieve astronomy data",
+            },
+            {
+              status: 502,
+            },
+          );
+        }
+
+        /*
+         * 11. Save LunarScope astronomy in cache.
          *
          * If cache saving fails,
          * still return astronomy to the user.
@@ -264,10 +370,7 @@ export default {
         }
 
         /*
-         * 10. Return astronomy.
-         *
-         * Same response structure as before,
-         * so frontend changes are unnecessary.
+         * 12. Return LunarScope astronomy.
          */
         return Response.json({
           astronomy,
