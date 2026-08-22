@@ -117,7 +117,27 @@ export function formatPlaceLabel(
   return joinLabel(city, secondary);
 }
 
-export async function getCurrentPlace(): Promise<CurrentPlace> {
+export type Coordinates = {
+  latitude: number;
+  longitude: number;
+};
+
+export function toCurrentPlace(
+  coords: Coordinates,
+  address?: Location.LocationGeocodedAddress | null,
+): CurrentPlace {
+  return {
+    latitude: coords.latitude,
+    longitude: coords.longitude,
+    city: address?.city ?? null,
+    region: address?.region ?? null,
+    country: address?.country ?? null,
+    isoCountryCode: address?.isoCountryCode ?? null,
+    label: address ? formatPlaceLabel(address) : "Current location",
+  };
+}
+
+export async function getCurrentCoordinates(): Promise<Coordinates> {
   const { status } = await Location.requestForegroundPermissionsAsync();
 
   if (status !== "granted") {
@@ -134,19 +154,19 @@ export async function getCurrentPlace(): Promise<CurrentPlace> {
     throw new Error("Unable to determine current location");
   }
 
-  const { latitude, longitude } = position.coords;
-  const [address] = await Location.reverseGeocodeAsync({
-    latitude,
-    longitude,
-  });
-
   return {
-    latitude,
-    longitude,
-    city: address?.city ?? null,
-    region: address?.region ?? null,
-    country: address?.country ?? null,
-    isoCountryCode: address?.isoCountryCode ?? null,
-    label: formatPlaceLabel(address),
+    latitude: position.coords.latitude,
+    longitude: position.coords.longitude,
   };
+}
+
+export async function getCurrentPlace(): Promise<CurrentPlace> {
+  const coords = await getCurrentCoordinates();
+
+  try {
+    const [address] = await Location.reverseGeocodeAsync(coords);
+    return toCurrentPlace(coords, address);
+  } catch {
+    return toCurrentPlace(coords);
+  }
 }

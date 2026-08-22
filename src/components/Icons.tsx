@@ -213,6 +213,36 @@ export function ProfileTabIcon({ color, size = 22 }: IconProps) {
   );
 }
 
+export function SunriseArcIcon({ size = 42 }: { size?: number }) {
+  const height = size * 0.48;
+  return (
+    <Svg width={size} height={height} viewBox="0 0 48 22" fill="none">
+      <Path
+        d="M4 18C8 8 16 4 24 4s16 4 20 14"
+        stroke="#D4B15A"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+      />
+      <Circle cx="8" cy="9" r="4.2" fill="#E8C547" />
+    </Svg>
+  );
+}
+
+export function GoldenHourArcIcon({ size = 42 }: { size?: number }) {
+  const height = size * 0.48;
+  return (
+    <Svg width={size} height={height} viewBox="0 0 48 22" fill="none">
+      <Path
+        d="M4 18C8 8 16 4 24 4s16 4 20 14"
+        stroke="#D4B15A"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+      />
+      <Circle cx="24" cy="6.2" r="4.2" fill="#E8C547" />
+    </Svg>
+  );
+}
+
 export function SunArcIcon({ size = 42 }: { size?: number }) {
   const height = size * 0.48;
   return (

@@ -19,26 +19,36 @@ import {
   ChevronRightIcon,
   ClockIcon,
   EyeIcon,
+  GoldenHourArcIcon,
   PinIcon,
   ScorpioGlyph,
   SparkleIcon,
   StarIcon,
   SunArcIcon,
+  SunriseArcIcon,
 } from "../components/Icons";
 import { MoonPhaseIcon } from "../components/MoonPhaseIcon";
 import { homeData } from "../data/home";
-import { useCurrentPlace } from "../hooks/useCurrentPlace";
+import type { LunarScopeAstronomy } from "../services/astronomy";
+import type { CurrentPlace } from "../services/location";
 import { colors, fonts, radius, spacing } from "../theme";
+import { mapAstronomyToHome } from "../utils/astronomyDisplay";
 import { greetingForNow } from "../utils/greeting";
 
-const moonImage = require("../../assets/images/moon-phases/moon_phase_new_moon.webp");
+const fallbackMoonImage = require("../../assets/images/moon-phases/moon_phase_new_moon.webp");
 
-export function HomeScreen() {
+type HomeScreenProps = {
+  place: CurrentPlace | null;
+  locating: boolean;
+  astronomy: LunarScopeAstronomy | null;
+};
+
+export function HomeScreen({ place, locating, astronomy }: HomeScreenProps) {
   const [selectedDay, setSelectedDay] = useState(0);
   const [greeting, setGreeting] = useState(() =>
     greetingForNow(homeData.userName),
   );
-  const { place, loading: locating } = useCurrentPlace();
+  const today = astronomy ? mapAstronomyToHome(astronomy) : null;
   const locationLabel =
     place?.label ?? (locating ? "Locating…" : "Location unavailable");
 
@@ -83,13 +93,16 @@ export function HomeScreen() {
             <View style={styles.moonMeta}>
               <Text style={styles.kicker}>ILLUMINATION</Text>
               <Text style={styles.illumination}>
-                {homeData.moon.illumination}%
+                {today ? `${today.illumination}%` : "—"}
               </Text>
-              <Text style={styles.phaseName}>{homeData.moon.phase}</Text>
+              <Text style={styles.phaseName}>{today?.phase ?? "—"}</Text>
             </View>
             <View style={styles.moonVisual}>
               <MoonHalo />
-              <Image source={moonImage} style={styles.moonImage} />
+              <Image
+                source={today?.moonImage ?? fallbackMoonImage}
+                style={styles.moonImage}
+              />
             </View>
           </View>
           <View style={styles.moonTimes}>
@@ -98,7 +111,7 @@ export function HomeScreen() {
               <View>
                 <Text style={styles.moonTimeLabel}>Moonrise</Text>
                 <Text style={styles.moonTimeValue}>
-                  {homeData.moon.moonrise}
+                  {today?.moonrise ?? "—"}
                 </Text>
               </View>
             </View>
@@ -107,7 +120,7 @@ export function HomeScreen() {
               <View>
                 <Text style={styles.moonTimeLabel}>Moonset</Text>
                 <Text style={styles.moonTimeValue}>
-                  {homeData.moon.moonset}
+                  {today?.moonset ?? "—"}
                 </Text>
               </View>
             </View>
@@ -116,17 +129,19 @@ export function HomeScreen() {
 
         <View style={styles.sunCard}>
           <View style={styles.sunCol}>
-            <Text style={styles.kicker}>SUNRISE</Text>
-            <Text style={styles.sunValue}>{homeData.sun.sunrise}</Text>
+            <SunriseArcIcon />
+            <Text style={[styles.kicker, styles.sunriseKicker]}>SUNRISE</Text>
+            <Text style={styles.sunValue}>{today?.sunrise ?? "—"}</Text>
           </View>
           <View style={[styles.sunCol, styles.sunColCenter]}>
+            <GoldenHourArcIcon />
             <Text style={[styles.kicker, styles.goldKicker]}>GOLDEN HOUR</Text>
-            <Text style={styles.sunValue}>{homeData.sun.goldenHour}</Text>
+            <Text style={styles.sunValue}>{today?.goldenHour ?? "—"}</Text>
           </View>
           <View style={[styles.sunCol, styles.sunsetCol]}>
             <SunArcIcon />
             <Text style={[styles.kicker, styles.sunsetKicker]}>SUNSET</Text>
-            <Text style={styles.sunValue}>{homeData.sun.sunset}</Text>
+            <Text style={styles.sunValue}>{today?.sunset ?? "—"}</Text>
           </View>
         </View>
 
@@ -380,7 +395,7 @@ const styles = StyleSheet.create({
   phaseName: {
     color: colors.text,
     fontFamily: fonts.primary.semibold,
-    fontSize: 20,
+    fontSize: 18,
     marginTop: 2,
   },
   moonVisual: {
@@ -446,6 +461,12 @@ const styles = StyleSheet.create({
   },
   goldKicker: {
     color: colors.goldMuted,
+    fontFamily: fonts.secondary.semibold,
+    fontSize: 10,
+    marginTop: 2,
+  },
+  sunriseKicker: {
+    marginTop: 2,
   },
   sunsetKicker: {
     marginTop: 2,
@@ -453,7 +474,7 @@ const styles = StyleSheet.create({
   sunValue: {
     color: colors.text,
     fontFamily: fonts.primary.semibold,
-    fontSize: 15,
+    fontSize: 14,
     marginTop: 4,
   },
   sectionTitle: {

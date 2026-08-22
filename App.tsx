@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
@@ -12,9 +12,14 @@ import { Outfit_600SemiBold } from "@expo-google-fonts/outfit/600SemiBold";
 import { Outfit_700Bold } from "@expo-google-fonts/outfit/700Bold";
 
 import { TabBar, type TabKey } from "./src/components/TabBar";
+import { useAstronomy } from "./src/hooks/useAstronomy";
+import { useCurrentPlace } from "./src/hooks/useCurrentPlace";
 import { HomeScreen } from "./src/screens/HomeScreen";
+import { LunarScopeSplash } from "./src/screens/LunarScopeSplash";
 import { PlaceholderScreen } from "./src/screens/PlaceholderScreen";
 import { colors } from "./src/theme";
+
+const MIN_SPLASH_MS = 2200;
 
 const placeholderTitles: Record<Exclude<TabKey, "home">, string> = {
   explore: "Explore",
@@ -26,8 +31,10 @@ const placeholderTitles: Record<Exclude<TabKey, "home">, string> = {
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
+  const splashStartedAt = useRef(Date.now());
   const [tab, setTab] = useState<TabKey>("home");
-  const [loaded, error] = useFonts({
+  const [isSplashVisible, setSplashVisible] = useState(true);
+  const [loaded, fontError] = useFonts({
     Outfit_400Regular,
     Outfit_600SemiBold,
     Outfit_700Bold,
@@ -35,28 +42,66 @@ export default function App() {
     Geist_600SemiBold,
     Geist_700Bold,
   });
+  const { place, loading: locating, error: locationError } = useCurrentPlace();
+  const {
+    astronomy,
+    error: astronomyError,
+    loading: astronomyLoading,
+  } = useAstronomy(
+    place
+      ? { latitude: place.latitude, longitude: place.longitude }
+      : null,
+  );
+
+  const fontsReady = loaded || Boolean(fontError);
+  const hasDashboardData = astronomy != null;
+  const cannotLoadDashboard =
+    (!locating && locationError != null && place == null) ||
+    (!astronomyLoading && astronomyError != null && astronomy == null);
 
   useEffect(() => {
-    if (loaded || error) {
+    if (fontsReady) {
       SplashScreen.hideAsync();
     }
-  }, [loaded, error]);
+  }, [fontsReady]);
 
-  if (!loaded && !error) {
-    return null;
-  }
+  useEffect(() => {
+    if (!fontsReady || (!hasDashboardData && !cannotLoadDashboard)) {
+      return;
+    }
+
+    const remaining = Math.max(
+      0,
+      MIN_SPLASH_MS - (Date.now() - splashStartedAt.current),
+    );
+    const timer = setTimeout(() => {
+      setSplashVisible(false);
+    }, remaining);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [cannotLoadDashboard, fontsReady, hasDashboardData]);
 
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />
-      <View style={styles.root}>
-        {tab === "home" ? (
-          <HomeScreen />
-        ) : (
-          <PlaceholderScreen title={placeholderTitles[tab]} />
-        )}
-        <TabBar active={tab} onChange={setTab} />
-      </View>
+      {isSplashVisible ? (
+        <LunarScopeSplash />
+      ) : (
+        <View style={styles.root}>
+          {tab === "home" ? (
+            <HomeScreen
+              place={place}
+              locating={locating}
+              astronomy={astronomy}
+            />
+          ) : (
+            <PlaceholderScreen title={placeholderTitles[tab]} />
+          )}
+          <TabBar active={tab} onChange={setTab} />
+        </View>
+      )}
     </SafeAreaProvider>
   );
 }

@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import * as Location from "expo-location";
 
 import {
-  getCurrentPlace,
+  getCurrentCoordinates,
+  toCurrentPlace,
   type CurrentPlace,
 } from "../services/location";
 
@@ -13,26 +15,45 @@ export function useCurrentPlace() {
   useEffect(() => {
     let cancelled = false;
 
-    getCurrentPlace()
-      .then((result) => {
-        if (!cancelled) {
-          setPlace(result);
+    async function load() {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const coords = await getCurrentCoordinates();
+
+        if (cancelled) {
+          return;
         }
-      })
-      .catch((caught) => {
-        if (!cancelled) {
-          setError(
-            caught instanceof Error
-              ? caught.message
-              : "Unable to get location",
-          );
+
+        setPlace(toCurrentPlace(coords));
+        setLoading(false);
+
+        try {
+          const [address] = await Location.reverseGeocodeAsync(coords);
+
+          if (!cancelled) {
+            setPlace(toCurrentPlace(coords, address));
+          }
+        } catch {
+          // Keep the coordinates-only place so astronomy can still load.
         }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoading(false);
+      } catch (caught) {
+        if (cancelled) {
+          return;
         }
-      });
+
+        setPlace(null);
+        setError(
+          caught instanceof Error
+            ? caught.message
+            : "Unable to get location",
+        );
+        setLoading(false);
+      }
+    }
+
+    load();
 
     return () => {
       cancelled = true;

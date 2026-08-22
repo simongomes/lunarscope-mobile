@@ -7,19 +7,6 @@ export type ForecastDay = {
 
 export const homeData = {
   userName: "Luna",
-  location: "San Francisco, CA",
-  moon: {
-    illumination: 78,
-    phase: "Waxing Gibbous",
-    moonrise: "8:42 PM",
-    moonset: "6:15 AM",
-    waxing: true,
-  },
-  sun: {
-    sunrise: "6:23 AM",
-    goldenHour: "7:22–8:07 PM",
-    sunset: "8:07 PM",
-  },
   forecast: [
     { day: "Mon", illumination: 78, waxing: true, rating: 3 },
     { day: "Tue", illumination: 86, waxing: true, rating: 2 },
