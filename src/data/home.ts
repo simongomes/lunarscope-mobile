@@ -6,7 +6,7 @@ export type ForecastDay = {
 };
 
 export const homeData = {
-  greeting: "Good Evening, Luna",
+  userName: "Luna",
   location: "San Francisco, CA",
   moon: {
     illumination: 78,

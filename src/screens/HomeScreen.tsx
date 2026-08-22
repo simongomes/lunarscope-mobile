@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
+  AppState,
   Image,
   Pressable,
   ScrollView,
@@ -28,14 +29,30 @@ import { MoonPhaseIcon } from "../components/MoonPhaseIcon";
 import { homeData } from "../data/home";
 import { useCurrentPlace } from "../hooks/useCurrentPlace";
 import { colors, fonts, radius, spacing } from "../theme";
+import { greetingForNow } from "../utils/greeting";
 
 const moonImage = require("../../assets/images/moon-phases/moon_phase_new_moon.webp");
 
 export function HomeScreen() {
   const [selectedDay, setSelectedDay] = useState(0);
+  const [greeting, setGreeting] = useState(() =>
+    greetingForNow(homeData.userName),
+  );
   const { place, loading: locating } = useCurrentPlace();
-  const locationLabel = place?.label
-    ?? (locating ? "Locating…" : "Location unavailable");
+  const locationLabel =
+    place?.label ?? (locating ? "Locating…" : "Location unavailable");
+
+  useEffect(() => {
+    const refresh = () => setGreeting(greetingForNow(homeData.userName));
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") refresh();
+    });
+    const interval = setInterval(refresh, 60_000);
+    return () => {
+      subscription.remove();
+      clearInterval(interval);
+    };
+  }, []);
 
   return (
     <SafeAreaView edges={["top"]} style={styles.screen}>
@@ -46,7 +63,7 @@ export function HomeScreen() {
       >
         <View style={styles.header}>
           <View style={styles.headerText}>
-            <Text style={styles.greeting}>{homeData.greeting}</Text>
+            <Text style={styles.greeting}>{greeting}</Text>
             <View style={styles.locationRow}>
               <PinIcon />
               <Text style={styles.location}>{locationLabel}</Text>
@@ -306,7 +323,7 @@ const styles = StyleSheet.create({
   greeting: {
     color: colors.text,
     fontFamily: fonts.primary.bold,
-    fontSize: 28,
+    fontSize: 24,
     letterSpacing: -0.4,
   },
   locationRow: {
