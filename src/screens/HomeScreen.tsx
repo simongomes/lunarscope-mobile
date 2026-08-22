@@ -26,12 +26,16 @@ import {
 } from "../components/Icons";
 import { MoonPhaseIcon } from "../components/MoonPhaseIcon";
 import { homeData } from "../data/home";
+import { useCurrentPlace } from "../hooks/useCurrentPlace";
 import { colors, fonts, radius, spacing } from "../theme";
 
-const moonImage = require("../../assets/images/moon-waxing-gibbous.png");
+const moonImage = require("../../assets/images/moon-phases/moon_phase_new_moon.webp");
 
 export function HomeScreen() {
   const [selectedDay, setSelectedDay] = useState(0);
+  const { place, loading: locating } = useCurrentPlace();
+  const locationLabel = place?.label
+    ?? (locating ? "Locating…" : "Location unavailable");
 
   return (
     <SafeAreaView edges={["top"]} style={styles.screen}>
@@ -45,7 +49,7 @@ export function HomeScreen() {
             <Text style={styles.greeting}>{homeData.greeting}</Text>
             <View style={styles.locationRow}>
               <PinIcon />
-              <Text style={styles.location}>{homeData.location}</Text>
+              <Text style={styles.location}>{locationLabel}</Text>
             </View>
           </View>
           <Pressable
